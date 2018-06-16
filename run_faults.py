@@ -6,6 +6,8 @@ from __future__ import print_function
 
 import sys
 import os
+import matplotlib
+matplotlib.use('Agg')
 
 import numpy
 import matplotlib.pyplot as plt
@@ -142,7 +144,8 @@ class FaultJob(batch.Job):
         self.rundata.friction_data.variable_friction = False
 
         # Replace dtopo file with our own
-        self.dtopo_path = 'fault_s%s.tt3' % self.base_subfault.slip
+        #self.dtopo_path = 'fault_s%s.tt3' % self.base_subfault.slip PKJ
+        self.dtopo_path = 'dtopo_usgs100227_bias.tt3_ens_%s' % run_number
         self.rundata.dtopo_data.dtopofiles = [[3, 4, 4, self.dtopo_path]]
 
 
@@ -165,15 +168,16 @@ class FaultJob(batch.Job):
         dtopo.write(path=self.dtopo_path, dtopo_type=3)
 
         # Plot fault here
-        fig = plt.figure()
-        axes = fig.add_subplot(1, 1, 1)
+        if 0:
+            fig = plt.figure()
+            axes = fig.add_subplot(1, 1, 1)
 
-        cmap = plt.get_cmap("YlOrRd")
-        self.fault.plot_subfaults(axes=axes, slip_color=True, cmap_slip=cmap, 
+            cmap = plt.get_cmap("YlOrRd")
+            self.fault.plot_subfaults(axes=axes, slip_color=True, cmap_slip=cmap, 
                                   cmin_slip=FaultJob.cmin_slip, cmax_slip=FaultJob.cmax_slip,
                                   plot_rake=True)
-        axes.set_title("$M_o = %s$, $M_w = %s$" % (str(self.fault.Mo()), str(self.fault.Mw())))
-        fig.savefig("fault_slip.png")
+            axes.set_title("$M_o = %s$, $M_w = %s$" % (str(self.fault.Mo()), str(self.fault.Mw())))
+            fig.savefig("fault_slip.png")
 
         # Write other data files
         super(FaultJob, self).write_data_objects()
@@ -214,6 +218,6 @@ if __name__ == '__main__':
 
     controller = batch.BatchController(jobs)
     controller.wait = False
-    controller.plot = True
+    controller.plot = False
     print(controller)
     controller.run()

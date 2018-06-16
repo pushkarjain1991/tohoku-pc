@@ -43,7 +43,12 @@ def setrun(claw_pkg='geoclaw'):
     # GeoClaw specific parameters:
     #------------------------------------------------------------------
 
-    rundata = setgeo(rundata)   # Defined below
+    rundata = setgeo(rundata)
+
+    #------------------------------------------------------------------
+    # PDAF specific parameters:
+    #------------------------------------------------------------------
+    rundata = set_PDAF(rundata)
 
     #------------------------------------------------------------------
     # Standard Clawpack parameters to be written to claw.data:
@@ -108,8 +113,8 @@ def setrun(claw_pkg='geoclaw'):
     # restart_file 'fort.chkNNNNN' specified below should be in 
     # the OUTDIR indicated in Makefile.
 
-    clawdata.restart = False               # True to restart from prior results
-    clawdata.restart_file = 'fort.chk00036'  # File to use for restart data
+    clawdata.restart = True               # True to restart from prior results
+    clawdata.restart_file = 'fort.chk00103'  # File to use for restart data Level2,3
 
 
     # -------------
@@ -120,28 +125,31 @@ def setrun(claw_pkg='geoclaw'):
     # Note that the time integration stops after the final output time.
     # The solution at initial time t0 is always written in addition.
 
-    clawdata.output_style = 1
+    clawdata.output_style = 2
 
     if clawdata.output_style == 1:
         # Output nout frames at equally spaced times up to tfinal:
-        # clawdata.num_output_times = 16
         clawdata.num_output_times = 16
-        clawdata.tfinal = 16 * 3600.
+        clawdata.tfinal = 16 * 3600.0
         clawdata.output_t0 = True
 
     elif clawdata.output_style == 2:
         # Specify a list of output times.
-        clawdata.output_times = list(numpy.arange(0,3600,360)) \
-                              + list(3600*numpy.arange(0,21,0.5))
+        #clawdata.output_times = [0.5, 1.0]
+        #clawdata.output_times = np.linspace(0.5, 13.0, 26)*3600.0
+        obs_time_list1 = numpy.arange(7356.0, 15157.0, 600.0)
+        obs_time_list2 = numpy.arange(15576.0, 43176.0, 1200.0)
+        clawdata.output_times = numpy.append(obs_time_list1, obs_time_list2)
 
     elif clawdata.output_style == 3:
         # Output every iout timesteps with a total of ntot time steps:
-        clawdata.output_step_interval = 2
-        clawdata.total_steps = 6
+        #clawdata.output_step_interval = 60
+        clawdata.output_step_interval = 60
+        clawdata.total_steps = 780
         clawdata.output_t0 = True
         
 
-    clawdata.output_format = 'binary'      # 'ascii' or 'netcdf' 
+    clawdata.output_format = 'ascii'      # 'ascii' or 'netcdf' 
 
     clawdata.output_q_components = 'all'   # need all
     clawdata.output_aux_components = 'all'  # eta=h+B is in q
@@ -156,7 +164,7 @@ def setrun(claw_pkg='geoclaw'):
     # The current t, dt, and cfl will be printed every time step
     # at AMR levels <= verbosity.  Set verbosity = 0 for no printing.
     #   (E.g. verbosity == 2 means print only on levels 1 and 2.)
-    clawdata.verbosity = 5
+    clawdata.verbosity = 1
 
 
 
@@ -278,11 +286,11 @@ def setrun(claw_pkg='geoclaw'):
 
 
     # max number of refinement levels:
-    amrdata.amr_levels_max = 5
+    amrdata.amr_levels_max = 2
 
-    # List of refinement ratios at each level (length at least amr_levels_max-1)
-    amrdata.refinement_ratios_x = [4,6,5,4]
-    amrdata.refinement_ratios_y = [4,6,5,4]
+    # List of refinement ratios at each level (length at least mxnest-1)
+    amrdata.refinement_ratios_x = [2,2,2,2]
+    amrdata.refinement_ratios_y = [2,2,2,2]
     amrdata.refinement_ratios_t = [1,1,1,1]
 
 
@@ -313,11 +321,11 @@ def setrun(claw_pkg='geoclaw'):
 
     #  ----- For developers ----- 
     # Toggle debugging print statements:
-    amrdata.dprint = False      # print domain flags
+    amrdata.dprint = True      # print domain flags
     amrdata.eprint = False      # print err est flags
     amrdata.edebug = False      # even more err est flags
     amrdata.gprint = False      # grid bisection/clustering
-    amrdata.nprint = False      # proper nesting output
+    amrdata.nprint = True      # proper nesting output
     amrdata.pprint = False      # proj. of tagged points
     amrdata.rprint = False      # print regridding summary
     amrdata.sprint = False      # space/memory output
@@ -349,9 +357,11 @@ def setrun(claw_pkg='geoclaw'):
     # rundata.gaugedata.gauges.append([21416, 163.505, 48.052,  1800., 1.e10])
     rundata.gaugedata.gauges.append([21418, 148.694, 38.711,     0., 1.e10])
     rundata.gaugedata.gauges.append([21419, 155.736, 44.455,  1800., 1.e10])
-    rundata.gaugedata.gauges.append([46411, 232.918, 39.333,      0, 1e10])
-    rundata.gaugedata.gauges.append([51407, 203.484, 19.642, 22000., 1.e10])
-    rundata.gaugedata.gauges.append([52402, 154.116, 11.883, 10000., 1.e10])
+    #rundata.gaugedata.gauges.append([46411, 232.918, 39.333,      0, 1e10])
+    rundata.gaugedata.gauges.append([46411, 232.918, 39.333,      0, 1.6e4])
+    #rundata.gaugedata.gauges.append([51407, 203.484, 19.642, 22000., 1.e10])
+    rundata.gaugedata.gauges.append([51407, 203.484, 19.642, 0., 1.6e4])
+    rundata.gaugedata.gauges.append([52402, 154.116, 11.883, 0, 1.6e4])
     # rundata.gaugedata.gauges.append([1,  140.846971, 36.351141, 0.0, 1e10])
     # rundata.gaugedata.gauges.append([2,  141.115000, 37.420000, 0.0, 1e10])
     # rundata.gaugedata.gauges.append([3,  141.100000, 38.160000, 0.0, 1e10])
@@ -365,8 +375,6 @@ def setrun(claw_pkg='geoclaw'):
     # rundata.gaugedata.gauges.append([11, 141.626825, 40.989026, 0.0, 1e10])
     # rundata.gaugedata.gauges.append([12, 141.133576, 42.133955, 0.0, 1e10])
     # rundata.gaugedata.gauges.append([13, 143.739806, 42.535828, 0.0, 1e10])
-      
-     
 
 
     # =====================
@@ -419,7 +427,7 @@ def setgeo(rundata):
     topo_data = rundata.topo_data
     # for topography, append lines of the form
     #   [topotype, minlevel, maxlevel, t1, t2, fname]
-    topodir = os.path.expandvars('$SRC/tohoku2011-paper1/topo')
+    topodir = os.path.expandvars('../tohoku2011-paper1/topo')
     topo_data.topofiles.append([3, 1, 4, 0., 1.e10,
                            os.path.join(topodir,'etopo1min139E147E34N41N.asc')])
     topo_data.topofiles.append([3, 1, 4, 0., 1.e10,
@@ -430,12 +438,12 @@ def setgeo(rundata):
     dtopo_data = rundata.dtopo_data
     # for moving topography, append lines of the form:  (<= 1 allowed for now!)
     #   [topotype, minlevel,maxlevel,fname]
-    dtopodir = os.path.expandvars('$SRC/tohoku2011-paper1/sources/')
+    dtopodir = os.path.expandvars('../tohoku2011-paper1/sources/')
     dtopo_data.dtopofiles.append([1, 4, 4,
                                        os.path.join(dtopodir, 'Ammon.txydz')])
-    # dtopodir = os.getcwd()
-    # dtopo_data.dtopofiles.append([1, 4, 4,
-    #                                    os.path.join(dtopodir, 'saito.xyzt')])
+    #dtopodir = os.path.expandvars('/h2/pkjain/Desktop/Pushkar/clawpack/geoclaw/examples/tsunami/tohoku-pc/ens_topo/')
+    #dtopo_data.dtopofiles.append([3, 4, 4,
+    #                                   os.path.join(dtopodir, 'dtopo_usgs100227_bias.tt3')])
 
 
     # == setqinit.data values ==
@@ -467,14 +475,37 @@ def set_friction(rundata):
 
     return data
 
+def set_PDAF(rundata):
+    import clawpack.geoclaw.data
+    rundata.add_data(clawpack.geoclaw.data.PDAFData(), 'pdaf_data')
+    #(0) SEEK
+    #(1) SEIK
+    #(2) EnKF
+    #(3) LSEIK
+    #(4) ETKF
+    #(5) LETKF
+    #(6) ESTKF
+    #(7) LESTKF
+    rundata.pdaf_data.filtertype = 5
+    rundata.pdaf_data.num_ensembles = 7
+    rundata.pdaf_data.rms_obs = 0.01
+    rundata.pdaf_data.subtype = 0
+    rundata.pdaf_data.forget = 0.9
+    
+    rundata.pdaf_data.type_trans = 0
+    rundata.pdaf_data.type_forget = 0
+    rundata.pdaf_data.delt_obs = 1
+    rundata.pdaf_data.type_sqrt = 0
+    rundata.pdaf_data.incremental = 0
+    rundata.pdaf_data.covartype = 1
+    rundata.pdaf_data.rank_analysis_enkf = 0
+    rundata.pdaf_data.int_rediag = 1
+    rundata.pdaf_data.locweight = 2
+    rundata.pdaf_data.local_range = 20.0
+    return rundata
 
 if __name__ == '__main__':
     # Set up run-time parameters and write all data files.
     import sys
-    if len(sys.argv) == 2:
-        rundata = setrun(sys.argv[1])
-    else:
-        rundata = setrun()
-
+    rundata = setrun(*sys.argv[1:])
     rundata.write()
-

@@ -23,10 +23,12 @@ import clawpack.geoclaw.data
 import clawpack.geoclaw.dtopotools as dtopotools
 
 # Grab dart data
-dart_data_path = os.path.expandvars("$SRC/2011tohoku_paper/dart/")
+#dart_data_path = os.path.expandvars("../tohoku2011-paper1/dart/")
+#dart_data_path = "/h2/pkjain/Desktop/Pushkar/clawpack/geoclaw/examples/tsunami/tohoku2011-paper1/dart"
+dart_data_path = "/h2/pkjain/Desktop/Pushkar/clawpack/geoclaw/examples/tsunami/tohoku-pc/dart"
 
 dartdata = {}
-for gaugeno in [21401, 21413, 21414, 21415,  21418, 21419, 51407, 52402]:
+for gaugeno in [21401, 21413, 21414, 21415,  21418, 21419, 46411, 51407, 52402]:
     files = glob.glob(os.path.join(dart_data_path, '%s*_notide.txt' % gaugeno))
     if len(files) != 1:
         print "*** Warning: found %s files for gauge number %s" \
@@ -47,8 +49,9 @@ tlimits[21415] = [7200,28800]
 tlimits[21416] = [0,14400]
 tlimits[21418] = [0,28800]
 tlimits[21419] = [0,28800]
-tlimits[51407] = [8000,28800]
-tlimits[52402] = [8000,28800]
+tlimits[46411] = [5000,28800]
+tlimits[51407] = [0,28800]
+tlimits[52402] = [0,28800]
 
 #--------------------------
 def setplot(plotdata):
@@ -62,7 +65,7 @@ def setplot(plotdata):
     """ 
 
     plotdata.clearfigures()  # clear any old figures,axes,items data
-    plotdata.format = 'binary'
+    plotdata.format = 'ascii'
 
 
     # Import useful run data
@@ -78,7 +81,7 @@ def setplot(plotdata):
 
     def addgauges(current_data):
         gaugetools.plot_gauge_locations(current_data.plotdata, \
-             gaugenos=[21401, 21413, 21418, 21419], format_string='ko', add_labels=True)
+             gaugenos=[21401, 21413, 21414, 21415, 21418, 21419, 46411, 51407, 52402], format_string='ko', add_labels=True)
     
 
     #-----------------------------------------
@@ -103,7 +106,7 @@ def setplot(plotdata):
         #pylab.text(200,22,'Hilo',color='k',fontsize=25)
         # pylab.plot([139.7],[35.6],'yo',markersize=5)
         # pylab.text(133.3,36.5,'Sendai',color='y',fontsize=15)
-        # addgauges(current_data)
+        addgauges(current_data)
 
     plotaxes.afteraxes = fixup
     plotaxes.xlimits = [clawdata.lower[0], clawdata.upper[0]]
@@ -118,7 +121,7 @@ def setplot(plotdata):
     plotitem.pcolor_cmax = 0.1
     plotitem.add_colorbar = True
     plotitem.amr_celledges_show = [0,0,0]
-    plotitem.patchedges_show = 0
+    plotitem.patchedges_show = 1
 
     # Land
     plotitem = plotaxes.new_plotitem(plot_type='2d_pcolor')
@@ -163,8 +166,8 @@ def setplot(plotdata):
     #plotitem.plot_var = geoplot.surface
     plotitem.plot_var = geoplot.surface_or_depth
     plotitem.pcolor_cmap = colormaps.blue_white_red
-    plotitem.pcolor_cmin = -10.0
-    plotitem.pcolor_cmax = 10.0
+    plotitem.pcolor_cmin = -.1
+    plotitem.pcolor_cmax = 0.1
     plotitem.add_colorbar = True
     plotitem.amr_celledges_show = [0,0,0]
     plotitem.patchedges_show = 0
@@ -206,7 +209,7 @@ def setplot(plotdata):
     #-----------------------------------------
     plotfigure = plotdata.new_plotfigure(name='Surface & topo', figno=300, \
                     type='each_gauge')
-    plotfigure.clf_each_gauge = False
+    plotfigure.clf_each_gauge = True
 
     # Set up for axes in this figure:
     plotaxes = plotfigure.new_plotaxes()
@@ -220,13 +223,14 @@ def setplot(plotdata):
     plotitem.plotstyle = 'b-'
     plotitem.kwargs = {'linewidth':2}
 
-    # Plot comparison as red curve:
-    plotitem = plotaxes.new_plotitem(plot_type='1d_plot')
-    plotitem.show = (dart_data_path is not None)
-    # plotitem.outdir = dart_data_path
-    plotitem.plot_var = 3
-    plotitem.plotstyle = 'r-'
-    plotitem.kwargs = {'linewidth':2}
+    if 0:
+        # Plot comparison as red curve:
+        plotitem = plotaxes.new_plotitem(plot_type='1d_plot')
+        plotitem.show = (dart_data_path is not None)
+        # plotitem.outdir = dart_data_path
+        plotitem.plot_var = 3
+        plotitem.plotstyle = 'r-'
+        plotitem.kwargs = {'linewidth':2}
 
     # Plot topo as green curve:
     plotitem = plotaxes.new_plotitem(plot_type='1d_plot')
@@ -251,14 +255,15 @@ def setplot(plotdata):
         gaugeno = current_data.gaugeno
         try:
             dart = dartdata[gaugeno]
-            pylab.plot(dart[:,0],dart[:,1],'k')    
-            pylab.legend(['GeoClaw','DART data'])
+            pylab.plot(dart[:,0],dart[:,1],'r')    
+            pylab.legend(['GeoClaw','Obs'])
         except:
             if dart_data_path is None:
                 pylab.legend(['GeoClaw'])
             else:
                 pylab.legend(['GeoClaw','dart_data_path'])
-        add_zeroline(current_data)
+        if 0:
+            add_zeroline(current_data)
         try:
             pylab.xlim(tlimits[gaugeno])
         except:
@@ -319,11 +324,12 @@ def setplot(plotdata):
                                                     # cmax_slip=120.0)
         # fig.savefig('fault.png')
 
-        dtopo = dtopotools.DTopography(path=dtopo_data.dtopofiles[0][3])
-        fig = plt.figure()
-        axes = fig.add_subplot(1, 1, 1)
-        dtopo.plot_dZ_colors(t=1.0, axes=axes)
-        fig.savefig("uplift.png")
+        if 0:
+            dtopo = dtopotools.DTopography(path=dtopo_data.dtopofiles[0][3])
+            fig = plt.figure()
+            axes = fig.add_subplot(1, 1, 1)
+            dtopo.plot_dZ_colors(t=1.0, axes=axes)
+            fig.savefig("uplift.png")
 
 
     plotfigure = plotdata.new_otherfigure("Fault", "fault.html")

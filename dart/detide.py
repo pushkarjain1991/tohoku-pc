@@ -73,4 +73,4 @@ def make_all():
 if __name__=="__main__":
     make_all()
 
-    # plt.show()
+    plt.show()

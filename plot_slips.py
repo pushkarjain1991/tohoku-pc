@@ -60,7 +60,8 @@ def plot_UCSB_fault(path='./UCSB_model3_subfault.txt'):
 
 def create_fault(slips):
     # Comparison Fault System
-    UCSB_fault = dtopotools.UCSBFault('./UCSB_model3_subfault.txt')
+    #UCSB_fault = dtopotools.UCSBFault('./UCSB_model3_subfault.txt')
+    UCSB_fault = dtopotools.UCSBFault('./slip_analysis/ammon_subfault.txt')
 
     # Use data from the reconstruced UCSB fault to setup our fault system
     # Calculate average quantities across all subfaults
